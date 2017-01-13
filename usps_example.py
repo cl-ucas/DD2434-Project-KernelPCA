@@ -18,6 +18,8 @@ class kPCA_usps():
         self.speckle_images=self.addSpeckleNoise(np.copy(self.test_images))
         self.kPCA_gaussian=Gaussian_Kernel()
         self.C=0.5
+        self.kGram = None
+        self.norm_vec = None
 
     def readData(self,filePath):
         labels=[]
@@ -87,39 +89,40 @@ class kPCA_usps():
             plt.imshow(image,'gray',interpolation='none')
             #plt.show()
 
-    def kernelPCA_gaussian(self, max_eigVec_lst, threshold):
+    def catch_zero(self, gamma, z_init):
+        try:
+            approx_z = self.kPCA_gaussian.approximate_z_single(gamma, z_init, self.training_images,
+                                                               self.C, 256)
+        except ValueError:
+            print("zero denominator! Initializing with previous z_init.")
+            approx_z = self.catch_zero(gamma, self.gaussian_images[np.random.choice(self.gaussian_images.shape[0], size=1)])
+        return approx_z
+
+    def kernelPCA_gaussian(self, max_eigVec_lst, threshold, test_image):
         # create Projection matrix for all test points and for each max_eigVec
-        kGram, norm_vec = self.kPCA_gaussian.normalized_eigenVectors(self.training_images, self.C)
-        projection_kernel = self.kPCA_gaussian.projection_kernel(self.training_images, self.test_images, self.C)
-        projection_matrix_centered = self.kPCA_gaussian.projection_centering(kGram, projection_kernel)
+        if(self.kGram == None):
+            self.kGram, self.norm_vec = self.kPCA_gaussian.normalized_eigenVectors(self.training_images, self.C)
+        projection_kernel = self.kPCA_gaussian.projection_kernel(self.training_images, test_image, self.C)
+        projection_matrix_centered = self.kPCA_gaussian.projection_centering(self.kGram, projection_kernel)
         result_lst=[]
         for max_eigVec in max_eigVec_lst:
             reconstructed_images = []
-            print(max_eigVec)
-            projection_matrix = np.dot(projection_matrix_centered, norm_vec[:, :max_eigVec])
+            projection_matrix = np.dot(projection_matrix_centered, self.norm_vec[:, :max_eigVec])
 
             # approximate input
-            gamma = self.kPCA_gaussian.gamma_weights(norm_vec, projection_matrix, max_eigVec)
+            gamma = self.kPCA_gaussian.gamma_weights(self.norm_vec, projection_matrix, max_eigVec)
             # np.random.seed(20)
             # z_init = np.random.rand(self.nClusters * self.nTestPoints, self.nDim)
-            z_init = np.copy(self.gaussian_images)  # according to first section under chapter 4,
+            z_init = np.copy(test_image)  # according to first section under chapter 4,
             # in de-noising we can use the test points as starting guess
-            z_init_old = np.zeros(z_init.shape)
             #for tp in range(len(self.test_images)):
-            for tp in range(0,1):
-                max_distance = 1
-                while max_distance > threshold:
-                    try:
-                        approx_z = self.kPCA_gaussian.approximate_z_single(gamma[tp, :], z_init[tp, :], self.training_images,
-                                                                           self.C, 256)
-                    except ValueError:
-                        print("zero denominator! Initializing with previous z_init.")
-                        approx_z = self.kPCA_gaussian.approximate_z_single(gamma[tp, :], z_init[tp-1, :], self.training_images,
-                                                                           self.C, 256)
-                    max_distance = (np.linalg.norm(z_init[tp, :] - approx_z, axis=1, ord=2))
-                    z_init[tp, :] = approx_z
+            max_distance = 1
+            while max_distance > threshold:
+                approx_z = self.catch_zero(gamma, z_init)
+                max_distance = (np.linalg.norm(z_init - approx_z, axis=1, ord=2))
+                z_init = approx_z
 
-                reconstructed_images.append(approx_z)
+            reconstructed_images.append(approx_z)
             result_lst.append(reconstructed_images)
         return result_lst
 
@@ -130,8 +133,9 @@ if __name__ == "__main__":
     #usps.display(usps.test_images[0:1], ax1)
     usps.display(usps.gaussian_images[0:1])
     print(usps.test_labels[0])
+    max_eigVec_lst = [1, 4, 16, 64, 256]
+    reconstruted_images = usps.kernelPCA_gaussian(max_eigVec_lst, 0.1, usps.gaussian_images[0])
     for i in range(5):
-        ax2 = plt.subplot("21%d" % (i+1))
-        reconstruted_images=usps.kernelPCA_gaussian([0],0.1)
-        usps.display(reconstruted_images[0])
-        plt.show()
+        ax2 = plt.subplot("61%d" % (i+2))
+        usps.display(reconstruted_images[i])
+    plt.show()
