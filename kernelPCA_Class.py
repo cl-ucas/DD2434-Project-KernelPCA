@@ -265,12 +265,20 @@ class Gaussian_Kernel(kernelPCA):
         :param z_init:
         :return:
         """
-        z_kernel = self.projection_kernel(training_data, np.matrix(z_s), C)  # This is not centered? Should it be?
-        z_num = np.dot(np.multiply(gamma, z_kernel), training_data)
-        z_den = np.sum(np.multiply(gamma, z_kernel), axis=1)
+        try:
+            z_kernel = self.projection_kernel(training_data, np.matrix(z_s), C)  # This is not centered? Should it be?
+            z_num = np.dot(np.multiply(gamma, z_kernel), training_data)
+            z_den = np.sum(np.multiply(gamma, z_kernel), axis=1)
+        except ValueError as e:
+            raise e
         if z_den == 0:
+            print('Denominator is zero!')
             raise ValueError
-        return np.divide(z_num, np.repeat(np.matrix(z_den).transpose(), nDim, axis=1))
+        try:
+            retVal = np.divide(z_num, np.repeat(np.matrix(z_den).transpose(), nDim, axis=1))
+        except ValueError as e:
+            raise e
+        return retVal
 
 
 class Linear_Kernel(kernelPCA):

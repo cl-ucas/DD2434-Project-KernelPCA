@@ -20,6 +20,8 @@ class kPCA_usps():
         self.C=0.5
         self.kGram = None
         self.norm_vec = None
+        #self.kGram = np.loadtxt('kGram.txt')
+        #self.norm_vec = np.loadtxt('normVec.txt')
 
     def readData(self,filePath):
         labels=[]
@@ -39,9 +41,9 @@ class kPCA_usps():
         return np.asarray(labels),np.asarray(images)
 
     def extractDataSets(self, data, labels, nEach):
-        shuffleIndices = np.arange(data.shape[0])
-        shuffle(shuffleIndices)
-        data = data[shuffleIndices, :]
+        #shuffleIndices = np.arange(data.shape[0])
+        #shuffle(shuffleIndices)
+        #data = data[shuffleIndices, :]
         numbers = 10
         number_label = np.ones((10, 1)) * (nEach -1)
         retVal = np.zeros((nEach*numbers, data.shape[1]), dtype=float)
@@ -93,15 +95,18 @@ class kPCA_usps():
         try:
             approx_z = self.kPCA_gaussian.approximate_z_single(gamma, z_init, self.training_images,
                                                                self.C, 256)
-        except ValueError:
+        except ValueError as e:
+            print(e)
             print("zero denominator! Initializing with previous z_init.")
-            approx_z = self.catch_zero(gamma, self.gaussian_images[np.random.choice(self.gaussian_images.shape[0], size=1)])
+            approx_z = self.catch_zero(gamma, np.matrix(self.gaussian_images[np.random.choice(self.gaussian_images.shape[0], size=1)]).transpose())
         return approx_z
 
     def kernelPCA_gaussian(self, max_eigVec_lst, threshold, test_image):
         # create Projection matrix for all test points and for each max_eigVec
         if(self.kGram == None):
             self.kGram, self.norm_vec = self.kPCA_gaussian.normalized_eigenVectors(self.training_images, self.C)
+            np.savetxt('kGram.txt', self.kGram)
+            np.savetxt('normVec.txt', self.norm_vec)
         projection_kernel = self.kPCA_gaussian.projection_kernel(self.training_images, test_image, self.C)
         projection_matrix_centered = self.kPCA_gaussian.projection_centering(self.kGram, projection_kernel)
         result_lst=[]
@@ -118,6 +123,8 @@ class kPCA_usps():
             #for tp in range(len(self.test_images)):
             max_distance = 1
             while max_distance > threshold:
+                z_init = np.matrix(z_init).transpose()
+                print(z_init.shape)
                 approx_z = self.catch_zero(gamma, z_init)
                 max_distance = (np.linalg.norm(z_init - approx_z, axis=1, ord=2))
                 z_init = approx_z
