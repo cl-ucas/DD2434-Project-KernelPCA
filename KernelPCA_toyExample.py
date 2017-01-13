@@ -76,7 +76,7 @@ class kPCA_toy:
             z_init = self.test_data  # according to first section under chapter 4,
             # in de-noising we can use the test points as starting guess
             z_init_old = np.zeros(z_init.shape)
-            for tp in range(self.nTestPoints):
+            for tp in range(self.nTestPoints*self.nClusters):
                 max_distance = 1
                 while max_distance > threshold:
                     try:
