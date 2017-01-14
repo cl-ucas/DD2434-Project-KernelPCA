@@ -134,12 +134,9 @@ class kPCA_usps():
             projection_matrix = np.dot(projection_matrix_centered, self.norm_vec[:, :max_eigVec])
             # approximate input
             gamma = self.kPCA_gaussian.gamma_weights(self.norm_vec, projection_matrix, max_eigVec)
-            #z_init = np.copy(test_image)  # according to first section under chapter 4,
-            z_init=self.createRandomImage()
-            old_old=np.copy(test_image)
+            z_init = np.copy(test_image)  # according to first section under chapter 4,
             max_distance = 10
             count = 0
-            reSampledStart=0
             while max_distance > threshold and count<nIteration:
                 success=0
                 while success==0:
@@ -150,7 +147,6 @@ class kPCA_usps():
                     except ValueError as e:
                         z_init = self.gaussian_images[np.random.choice(self.gaussian_images.shape[0], size=1)]
                 max_distance = (np.linalg.norm(z_init - approx_z, axis=1, ord=2))
-                old_old=np.copy(z_init)
                 z_init = np.copy(approx_z)
                 count += 1
             print(max_distance)
@@ -221,7 +217,7 @@ class kPCA_usps():
     def reconstruct(self):
         plt.subplot(1,20,1)
         self.display(self.gaussian_images[2:3])
-        max_eigVec_lst=np.arange(20).reshape(20)
+        max_eigVec_lst=np.arange(20).reshape(20)+1
         reconstructed_images = self.kernelPCA_gaussian(max_eigVec_lst, 10**(-3), np.matrix(usps.gaussian_images[2]),1000)
         for i in range(20):
             ax2 = plt.subplot(1,20,(i + 2))
