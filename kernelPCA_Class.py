@@ -175,7 +175,7 @@ class kernelPCA:
         # plot.figure(j)
         # ax1 = plot.subplot('111')
         self.projection_contours(M, K, V_n, data_training, j, 0.1, region, ax1)
-        ax1 = self.plot_data(dataset, ax1)
+        ax1 = self.plot_data(data_training, ax1)
         plot.xlim(region[0, :])
         plot.ylim(region[1, :])
         plot.title('eigenvalue %.2f' % abs(L[j]))
@@ -265,19 +265,13 @@ class Gaussian_Kernel(kernelPCA):
         :param z_init:
         :return:
         """
-        try:
-            z_kernel = self.projection_kernel(training_data, np.matrix(z_s), C)  # This is not centered? Should it be?
-            z_num = np.dot(np.multiply(gamma, z_kernel), training_data)
-            z_den = np.sum(np.multiply(gamma, z_kernel), axis=1)
-        except ValueError as e:
-            raise e
+        z_kernel = self.projection_kernel(training_data, z_s, C)  # This is not centered? Should it be?
+        z_num = np.dot(np.multiply(gamma, z_kernel), training_data)
+        z_den = np.sum(np.multiply(gamma, z_kernel), axis=1)
         if z_den == 0:
-            print('Denominator is zero!')
+            #print('Denominator is zero!')
             raise ValueError
-        try:
-            retVal = np.divide(z_num, np.repeat(np.matrix(z_den).transpose(), nDim, axis=1))
-        except ValueError as e:
-            raise e
+        retVal = np.divide(z_num, np.repeat(np.matrix(z_den), nDim, axis=1))
         return retVal
 
 
