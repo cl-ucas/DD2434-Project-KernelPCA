@@ -155,6 +155,30 @@ class kPCA_usps():
             result_lst.append(reconstructed_images)
         return result_lst
 
+    def kernelPCA_linear(self,max_eigVec_lst):
+            """
+            De-noises test data using a Linear Kernel and direct projection
+            :param max_eigVec_lst: list of different number of principal components to be used
+            :return: list of the mean square distance for each trial using different max_eigVec
+            """
+
+            # centering data
+            kGram, norm_vec = self.kPCA_linear.normalized_eigenVectors(self.training_data, self.C)
+            projection_kernel = self.kPCA_linear.projection_kernel(self.training_data, self.test_data, self.C)
+            projection_matrix_centered = self.kPCA_linear.projection_centering(kGram, projection_kernel)
+
+            mean_sqr_sum_lst = []
+            # print(norm_vec.shape)
+            for max_eigVec in max_eigVec_lst:
+                projection_matrix = np.dot(projection_matrix_centered, norm_vec[:, :max_eigVec])
+
+                z_proj = self.kPCA_linear.approximate_input_data(norm_vec[:, :max_eigVec], self.training_data,
+                                                                 projection_matrix)
+
+                mean_sqr_sum_lst.append(self.calc_mean_sqr_sum(z_proj))
+
+            return mean_sqr_sum_lst
+
 
     def findGaussianEigenVectorImages(self, eig_vec_lst,threshold,nIteration):
         # create Projection matrix for all test points and for each max_eigVec
@@ -216,11 +240,11 @@ class kPCA_usps():
 
     def reconstruct(self):
         plt.subplot(1,20,1)
-        self.display(self.gaussian_images[2:3])
+        #self.display(self.gaussian_images[2:3])
         max_eigVec_lst=np.arange(20).reshape(20)+1
-        reconstructed_images = self.kernelPCA_gaussian(max_eigVec_lst, 10**(-3), np.matrix(usps.gaussian_images[2]),1000)
+        reconstructed_images = self.kernelPCA_gaussian(max_eigVec_lst, 10**(-3), np.matrix(usps.gaussian_images[2]),5)
         for i in range(20):
-            ax2 = plt.subplot(1,20,(i + 2))
+            ax2 = plt.subplot(1,20,(i + 1))
             self.display(reconstructed_images[i])
             plt.title('n_comp:%d' % max_eigVec_lst[i])
         plt.show()
