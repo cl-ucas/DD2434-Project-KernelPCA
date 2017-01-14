@@ -21,10 +21,10 @@ class kPCA_usps():
         self.speckle_images = self.addSpeckleNoise(np.copy(self.test_images))
         self.kPCA_gaussian = Gaussian_Kernel()
         self.C = 0.5
-        # self.kGram = None
-        # self.norm_vec = None
-        self.kGram = np.loadtxt('kGram.txt')
-        self.norm_vec = np.loadtxt('normVec.txt')
+        self.kGram = None
+        self.norm_vec = None
+        #self.kGram = np.loadtxt('kGram.txt')
+        #self.norm_vec = np.loadtxt('normVec.txt')
 
     def addGaussianNoise_skimage(self, data, mean, var):
         noisy_images = []

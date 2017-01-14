@@ -59,6 +59,7 @@ class kPCA_toy:
 
         return mean_sqr_sum_lst
 
+
     def kernelPCA_sum_gaussian_single(self, max_eigVec_lst, threshold):
         # create Projection matrix for all test points and for each max_eigVec
         kGram, norm_vec = self.kPCA_gaussian.normalized_eigenVectors(self.training_data, self.C)
@@ -80,10 +81,10 @@ class kPCA_toy:
                 max_distance = 1
                 while max_distance > threshold:
                     try:
-                        approx_z = self.kPCA_gaussian.approximate_z_single(gamma[tp, :], z_init[tp, :], self.training_data,
+                        approx_z = self.kPCA_gaussian.approximate_z_single(gamma[tp, :], np.matrix(z_init[tp, :]), self.training_data,
                                                                            self.C, self.nDim)
                     except ValueError:
-                        approx_z = self.kPCA_gaussian.approximate_z_single(gamma[tp, :], z_init[tp-1, :], self.training_data,
+                        approx_z = self.kPCA_gaussian.approximate_z_single(gamma[tp, :], np.matrix(z_init[tp-1, :]), self.training_data,
                                                                            self.C, self.nDim)
                     max_distance = (np.linalg.norm(z_init[tp, :] - approx_z, axis=1, ord=2))
 
@@ -165,7 +166,7 @@ if __name__ == "__main__":
     nClusters = 11
     nTrainingPoints = 100
     nTestPoints = 33
-    max_eigVec_lst = [4]
+    max_eigVec_lst = [1,10,100]
     # max_eigVec_lst = [10]
     convergence_threshold = 0.01
     mean = np.random.uniform(-1, 1, nClusters * nDimension).reshape([nClusters, nDimension])
@@ -187,17 +188,17 @@ if __name__ == "__main__":
     sqr_sum_lst_scikit = [mean_sqr_sum_tmp]
     print("SCIKIT kpca: %f" % sqr_sum_lst_scikit[0])
 
-    x_inv = kPCAtoy.scikit_lpca(max_eigVec_lst[0])
-    mean_sqr_sum_tmp = 0
-    for i in range(kPCAtoy.nClusters):
-        for j in range(kPCAtoy.nTestPoints):
-            mean_sqr_sum_tmp += (np.linalg.norm(x_inv[i * kPCAtoy.nTestPoints + j, :] - mean[i, :], ord=2) ** 2)
+    #x_inv = kPCAtoy.scikit_lpca(max_eigVec_lst[0])
+    #mean_sqr_sum_tmp = 0
+    #for i in range(kPCAtoy.nClusters):
+    #    for j in range(kPCAtoy.nTestPoints):
+    #        mean_sqr_sum_tmp += (np.linalg.norm(x_inv[i * kPCAtoy.nTestPoints + j, :] - mean[i, :], ord=2) ** 2)
 
-    sqr_sum__lst_sickit_linear = [mean_sqr_sum_tmp]
-    print("SCIKI LPCA %f" % sqr_sum__lst_sickit_linear[0])
+    #sqr_sum__lst_sickit_linear = [mean_sqr_sum_tmp]
+    #print("SCIKI LPCA %f" % sqr_sum__lst_sickit_linear[0])
 
-    sqr_sum__lst_linear = kPCAtoy.linearPCA(max_eigVec_lst)
-    print("OUR LPCA %f" % sqr_sum__lst_linear[0])
+    #sqr_sum__lst_linear = kPCAtoy.linearPCA(max_eigVec_lst)
+    #print("OUR LPCA %f" % sqr_sum__lst_linear[0])
     # max_eigVec_lst = [400]
     # sqr_sum_linear_2 = kPCAtoy.kernelPCA_sum_linear(max_eigVec_lst)
     # print(sqr_sum_linear_2)
@@ -206,12 +207,13 @@ if __name__ == "__main__":
     # print("ratio: " + str(sqr_sum_linear/sqr_sum_gaussian))
     # linear PCA
     for i in range(len(sqr_sum_lst_gaussian)):
-        results.append(sqr_sum__lst_linear[i] / sqr_sum_lst_gaussian[i])
+        #results.append(sqr_sum__lst_linear[i] / sqr_sum_lst_gaussian[i])
+        pass
 
 #print("Std: " + str(std))
 
-#print(sqr_sum_lst_gaussian)
+print(sqr_sum_lst_gaussian)
 #print(sqr_sum_lst_scikit)
-print(sqr_sum__lst_linear[0] / sqr_sum_lst_gaussian[0])
+#print(sqr_sum__lst_linear[0] / sqr_sum_lst_gaussian[0])
 fileName = "std_" + str(std) + ".txt"
 np.savetxt(fileName, results, delimiter=' & ', fmt='%2.2e', newline=' \\\\\n')

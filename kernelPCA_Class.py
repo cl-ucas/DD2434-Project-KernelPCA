@@ -3,6 +3,7 @@ import matplotlib.pyplot as plot
 import math
 import multiprocessing
 import matplotlib.cm as cm
+import pdb
 
 
 class kernelPCA:
@@ -195,6 +196,9 @@ class kernelPCA:
         sort_index = np.argsort(L, axis=0)
         sort_index = sort_index[::-1]
 
+        #print(len(np.where(L>0)))
+        #print(len(np.where(L < 0)))
+        # print(len(np.where(L == 0)))
         L = L[sort_index]
         U = U[:, sort_index]
 
@@ -271,7 +275,7 @@ class Gaussian_Kernel(kernelPCA):
         if z_den == 0:
             #print('Denominator is zero!')
             raise ValueError
-        retVal = np.divide(z_num, np.repeat(np.matrix(z_den), nDim, axis=1))
+        retVal = np.divide(z_num, z_den)
         return retVal
 
 
