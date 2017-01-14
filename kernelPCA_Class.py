@@ -196,9 +196,9 @@ class kernelPCA:
         sort_index = np.argsort(L, axis=0)
         sort_index = sort_index[::-1]
 
-        #print(len(np.where(L>0)))
-        #print(len(np.where(L < 0)))
-        # print(len(np.where(L == 0)))
+        print("L>0: " +str(len(np.where(L>0)[0])))
+        print("L<0: " + str(len(np.where(L < 0)[0])))
+        print("L=0: " +str(len(np.where(L == 0)[0])))
         L = L[sort_index]
         U = U[:, sort_index]
 
@@ -298,7 +298,7 @@ class Linear_Kernel(kernelPCA):
         """
         return np.dot(x, y.transpose())  # -C
 
-    def approximate_input_data(self, eigvec, X, beta):
+    def approximate_z_single(self, eigvec, X, beta):
         """
         project data (in input space) on the eigenvectors of linear PCA
         :param eigvec: alpha in PCA paper
