@@ -212,6 +212,7 @@ class kernelPCA:
         :param nComponents: number of components in projection,
         :return: Gamma_i = sum_k( alpha_i * beta_k)
         """
+
         return np.dot(projection_matrix, (V[:, :nComponents]).transpose())
 
 
@@ -262,22 +263,19 @@ class Gaussian_Kernel(kernelPCA):
             print('divide by zero!')
         return np.divide(z_num, np.repeat(np.matrix(z_den).transpose(), nDim, axis=1))
 
-    def approximate_z_single(self, gamma, z_s, training_data, C, nDim):
-        """
-        Return updated value of approximated input data z_(t+1)
-        :param gamma:
-        :param z_init:
-        :return:
-        """
+
+    def approximate_z_single(self,gamma,z_s,training_data,C,nDim):
         z_kernel = self.projection_kernel(training_data, z_s, C)  # This is not centered? Should it be?
-        z_num = np.dot(np.multiply(gamma, z_kernel), training_data)
+        gamma_and_kernel=np.multiply(gamma, z_kernel)
+        z_num=np.zeros((1,nDim))
+        for i in range(training_data.shape[0]):
+            z_num+=gamma_and_kernel[0,i]*training_data[i,:]
         z_den = np.sum(np.multiply(gamma, z_kernel), axis=1)
         if z_den == 0:
-            #print('Denominator is zero!')
+            # print('Denominator is zero!')
             raise ValueError
         retVal = np.divide(z_num, z_den)
         return retVal
-
 
 class Linear_Kernel(kernelPCA):
     """
